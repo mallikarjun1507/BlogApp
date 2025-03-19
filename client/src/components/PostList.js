@@ -1,42 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import PostItem from './PostItem';
+import React, { useEffect, useState } from "react";
+import PostItem from "./PostItem";
 
 const PostList = () => {
   const [posts, setPosts] = useState([]);
 
   useEffect(() => {
-    fetchPosts();
+    fetch("http://localhost:5000/api/posts")
+      .then((res) => res.json())
+      .then((data) => setPosts(data));
   }, []);
 
-  const fetchPosts = async () => {
-    const response = await fetch('http://localhost:5000/api/posts');
-    const data = await response.json();
-    setPosts(data);
-  };
-
   const handleDelete = async (id) => {
-    const response = await fetch(`http://localhost:5000/api/posts`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    await fetch(`http://localhost:5000/api/posts`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    if (response.ok) {
-      fetchPosts();
-    }
+    setPosts(posts.filter((post) => post.id !== id));
+  };
+
+  const handleEdit = async (updatedPost) => {
+    await fetch(`http://localhost:5000/api/posts`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedPost),
+    });
+
+    setPosts(posts.map((post) => (post.id === updatedPost.id ? updatedPost : post)));
   };
 
   return (
-    <div className="container mt-5">
-      <h1 className="text-center mb-4">Blog Posts</h1>
-      <div className="row">
-        {posts.map(post => (
-          <div className="col-md-4 mb-4" key={post.id}>
-            <PostItem post={post} onDelete={handleDelete} />
-          </div>
-        ))}
-      </div>
+    <div>
+      {posts.map((post) => (
+        <PostItem key={post.id} post={post} onDelete={handleDelete} onEdit={handleEdit} />
+      ))}
     </div>
   );
 };
